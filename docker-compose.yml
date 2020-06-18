@@ -1,0 +1,36 @@
+version: '3.5'
+
+x-defaults: &defaults
+  restart: always
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "5"
+  env_file:
+    - .env
+
+services:
+  mail:
+    image: meklis/postfix-roundcube-pcre
+    <<: *defaults
+    container_name: mail
+    volumes:
+      - ${PWD}/mysql:/var/lib/mysql
+      - ${PWD}/vmail/:/var/vmail
+      - ${PWD}/log:/var/log
+      - ${PWD}/hostname:/etc/hostname
+    ports:
+      - "25:25"
+      - "143:143"
+      - "110:110"
+      - "465:465"
+      - "993:993"
+      - "995:995"
+#Используем nginx чисто как прокси для веб-интерфейсов
+  nginx:
+    build: ./docker/nginx
+    <<: *defaults
+    container_name: nginx
+    ports:
+      - "80:80"
